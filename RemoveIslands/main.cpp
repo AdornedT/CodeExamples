@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <unordered_map>
+#include <random>
 
 using namespace std;
 
@@ -12,7 +14,7 @@ enum class Direction {
     WEST
 };
 
-unsigned int islandIterator(vector<vector<unsigned int>> landMass, unsigned int row, unsigned int column, Direction direction)
+unsigned int islandIterator(vector<vector<unsigned int>> landMass, unsigned int row, unsigned int column, Direction direction, unordered_map<string, bool> borderMap)
 {   
     //North
     if(landMass.at(row - 1).at(column) && direction != Direction::SOUTH)
@@ -22,9 +24,13 @@ unsigned int islandIterator(vector<vector<unsigned int>> landMass, unsigned int 
         {
             return 1;
         }
+        else if (borderMap.find(to_string(row-1) + "," + to_string(column)) != borderMap.end())
+        {
+            return 1;
+        }
         else
         {
-            if(islandIterator(landMass, row - 1, column, Direction::NORTH))
+            if(islandIterator(landMass, row - 1, column, Direction::NORTH, borderMap))
             {
                 return 1;
             }
@@ -34,13 +40,17 @@ unsigned int islandIterator(vector<vector<unsigned int>> landMass, unsigned int 
     if(landMass.at(row).at(column+1) && direction != Direction::WEST)
     {
         //This can solve non quadratic matrices
-        if(column + 1 == landMass[0].size())
+        if(column + 1 == landMass[0].size() - 1)
+        {
+            return 1;
+        }
+        else if (borderMap.find(to_string(row) + "," + to_string(column+1)) != borderMap.end())
         {
             return 1;
         }
         else
         {
-            if(islandIterator(landMass, row, column + 1, Direction::EAST))
+            if(islandIterator(landMass, row, column + 1, Direction::EAST, borderMap))
             {
                 return 1;
             }
@@ -54,9 +64,13 @@ unsigned int islandIterator(vector<vector<unsigned int>> landMass, unsigned int 
         {
             return 1;
         }
+        else if (borderMap.find(to_string(row) + "," + to_string(column-1)) != borderMap.end())
+        {
+            return 1;
+        }
         else
         {
-            if(islandIterator(landMass, row, column - 1, Direction::WEST))
+            if(islandIterator(landMass, row, column - 1, Direction::WEST, borderMap))
             {
                 return 1;
             }
@@ -66,13 +80,17 @@ unsigned int islandIterator(vector<vector<unsigned int>> landMass, unsigned int 
     if(landMass.at(row+1).at(column) && direction != Direction::NORTH)
     {
         //This can solve non quadratic matrices
-        if(row + 1 == landMass.size())
+        if(row + 1 == landMass.size() - 1)
+        {
+            return 1;
+        }
+        else if (borderMap.find(to_string(row+1) + "," + to_string(column)) != borderMap.end())
         {
             return 1;
         }
         else
         {
-            if(islandIterator(landMass, row + 1, column, Direction::SOUTH))
+            if(islandIterator(landMass, row + 1, column, Direction::SOUTH, borderMap))
             {
                 return 1;
             }
@@ -84,6 +102,8 @@ unsigned int islandIterator(vector<vector<unsigned int>> landMass, unsigned int 
 
 void removeIslands(vector<vector<unsigned int>> landMass)
 {
+    unordered_map<string, bool> borderMap = {};
+
     cout << "Starting Matrix" << endl;
     for (const auto& row : landMass)
     {
@@ -106,7 +126,10 @@ void removeIslands(vector<vector<unsigned int>> landMass)
         {
             if(landMass.at(row).at(column))
             {
-                landMass.at(row).at(column) = islandIterator(landMass, row, column, Direction::START);
+                if(landMass.at(row).at(column) = islandIterator(landMass, row, column, Direction::START, borderMap))
+                {
+                    borderMap.insert({to_string(row) + "," + to_string(column), true});
+                }
             }
         }
     }
@@ -121,23 +144,43 @@ void removeIslands(vector<vector<unsigned int>> landMass)
         cout << endl;
     }
     cout << endl;
+
+    cout << "Final Hash Map" << endl;
+    for (const auto& pair : borderMap)
+    {
+        cout << pair.first << ": " << pair.second << endl;
+    }
+    cout << endl;
 }
 
 
+vector<vector<unsigned int>> randomMatrix(unsigned int row_num, unsigned int column_num)
+{
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(0, 1);
+
+    vector<vector<unsigned int>> landMass(row_num, vector<unsigned int>(column_num, 0));
+
+    for(auto& row : landMass)
+    {
+        for (auto& element : row)
+        {
+            element = dis(gen);
+        }
+    }
+
+    return landMass;
+}
+
 int main()
 {
-    vector<vector<unsigned int>> landMass1{ {1, 1, 0, 0, 1}, 
-                                            {0, 1, 1, 0, 0}, 
-                                            {0, 0, 1, 1, 0}, 
-                                            {1, 0, 1, 0, 0}, 
-                                            {1, 1, 0, 0, 1} };
+    removeIslands(randomMatrix(3, 3));
+    removeIslands(randomMatrix(4, 4));
+    removeIslands(randomMatrix(5, 5));
+    removeIslands(randomMatrix(6, 6));
 
-    vector<vector<unsigned int>> landMass2{ {1, 0, 0, 0, 1}, 
-                                            {0, 1, 1, 0, 0}, 
-                                            {0, 0, 1, 1, 0}, 
-                                            {1, 0, 1, 0, 0}, 
-                                            {1, 1, 0, 0, 1} };
-    
-    removeIslands(landMass1);
-    removeIslands(landMass2);
+    removeIslands(randomMatrix(4, 3));
+    removeIslands(randomMatrix(5, 3));
+    removeIslands(randomMatrix(6, 4));
 }
