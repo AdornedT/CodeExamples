@@ -14,7 +14,7 @@ enum class Direction {
     WEST
 };
 
-unsigned int islandIterator(vector<vector<unsigned int>> landMass, unsigned int row, unsigned int column, Direction direction, unordered_map<string, bool> borderMap)
+unsigned int islandIterator(vector<vector<unsigned int>> landMass, unsigned int row, unsigned int column, Direction direction, const unordered_map<string, bool> borderMap)
 {   
     //North
     if(landMass.at(row - 1).at(column) && direction != Direction::SOUTH)
